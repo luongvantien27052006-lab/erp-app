@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          Int                @id @default(autoincrement())
+  fullName    String
+  phone       String
+  email       String             @unique
+  hometown    String?
+  password    String
+  role        String
+  code        String             @unique
+  avatar      String? // 🔥 THÊM DÒNG NÀY
+  createdAt   DateTime           @default(now())
+  students    Student[]
+  commissions CommissionPayout[]
+  employee    Employee?
+}
+
+model Employee {
+  id    Int     @id @default(autoincrement())
+  name  String
+  email String  @unique
+  phone String?
+  role  String
+
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Student {
+  id Int @id @default(autoincrement())
+
+  fullName       String?
+  cccd           String?   @unique
+  dob            DateTime?
+  cccdIssueDate  DateTime?
+  cccdIssuePlace String?
+  gender         String?
+  address        String?
+  hometown       String?
+  phone          String?
+  email          String?
+
+  program            String?
+  academicLevel      String?
+  gapYear            Int?
+  targetSchool       String?
+  expectedEnrollDate DateTime?
+  parentName         String?
+  parentPhone        String?
+  familyCondition    String?
+  note               String?
+
+  saleId Int
+  sale   User @relation(fields: [saleId], references: [id])
+
+  saleEmail String?
+
+  status    String   @default("PENDING")
+  score     Int?
+  riskLevel String?
+  createdAt DateTime @default(now())
+
+  // 🔥 FIX RELATIONS
+  visaProfiles VisaProfile[]
+  payments     Payment[]
+  tasks        Task[]
+  payouts      CommissionPayout[]
+}
+
+model VisaProfile {
+  id        Int @id @default(autoincrement())
+  studentId Int
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  passportNumber String?
+  embassyDate    DateTime?
+
+  createdAt DateTime @default(now())
+}
+
+model Payment {
+  id        Int @id @default(autoincrement())
+  studentId Int
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  amount Float
+  note   String?
+
+  createdAt DateTime @default(now())
+}
+
+model Task {
+  id        Int @id @default(autoincrement())
+  studentId Int
+
+  student Student @relation(fields: [studentId], references: [id])
+
+  title String
+  done  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+model CommissionPayout {
+  id        Int @id @default(autoincrement())
+  studentId Int
+
+  saleId Int
+  sale   User @relation(fields: [saleId], references: [id]) // 🔥 BẮT BUỘC
+
+  program String
+  amount  Int
+  status  String    @default("UNPAID") // UNPAID | PAID
+  paidAt  DateTime?
+  note    String?
+
+  student   Student  @relation(fields: [studentId], references: [id])
+  createdAt DateTime @default(now())
+}
